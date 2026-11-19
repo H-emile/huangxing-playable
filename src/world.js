@@ -320,6 +320,33 @@ export function terrainProfile() {
   return PROFILE;
 }
 
+// ---- 料堆落点的"地形平坦度"（2026-11-19，用户："料堆与地形衔接，不要重叠了"）----
+// 料堆贴图宽 34px（见 render.js 的 drawPropTex 调用）→ 左右各探半宽量高差。
+// ⚠️ 为什么必须量、而不能只按 `terrainY(x)` 单点对齐：地形是**分段折线**，
+//    单点对齐在坡上仍然是一半悬空、一半插进山体（离散形状 vs 斜面的必然结果）。
+const RUIN_HALF_W = 17;
+
+/** 某个落点左右各 `RUIN_HALF_W` 的地形高差（越小越平） */
+function lootSpanGap(x) {
+  return Math.abs(terrainY(x - RUIN_HALF_W) - terrainY(x + RUIN_HALF_W));
+}
+
+/**
+ * 平坦度**惩罚**（0 = 完全合脚）。
+ * ⚠️ 必须**封顶**：它是从间距分里减掉的，不封顶时"地形很烂的一波"会把间距项整体压掉，
+ *    废墟反而叠在一起 —— 那正是这次要修的问题的另一面。
+ */
+function flatPenalty(gap) {
+  return Math.min(40, Math.max(0, gap - LOOT_RULES.ruinFlatGap) * 2);
+}
+
+/**
+ * 两阶段选点时，"平地候选"允许把间距让掉多少。
+ * 废墟半宽 20 + 20 = 40，而 `ruinMinGap` 是 78 → 让掉 30 之后仍有 48，
+ * 比"两个贴图刚好不叠"还多 8px，肉眼不会看成叠在一起。
+ */
+const RUIN_NEAR_SLACK = 30;
+
 /**
  * 如果 `x` 落在某个**坎段**里（坡度 > `maxSlope` 的陡面）→ 返回它**下坡那一侧的边缘 x**；否则 null。
  *
@@ -846,16 +873,26 @@ export class World {
         for (let i = 0; i < zone.perSide; i++) {
           let bestX = 0;
           let bestScore = -Infinity;
+          let flatX = null;                 // 平地候选里的最优（见下面的两阶段）
+          let flatScore = -Infinity;
           for (let t = 0; t < 96; t++) {
             const cand = Math.round(a + this.rng() * (b - a));
             let dLoot = Infinity;
             let dPass = Infinity;
             for (const v of placed) { const g = Math.abs(v - cand); if (g < dLoot) dLoot = g; }
             for (const v of passages) { const g = Math.abs(v - cand); if (g < dPass) dPass = g; }
-            const score = Math.min(dLoot - LOOT_RULES.ruinMinGap, dPass - LOOT_RULES.worldGap);
+            const flatGap = lootSpanGap(cand);
+            const score = Math.min(dLoot - LOOT_RULES.ruinMinGap, dPass - LOOT_RULES.worldGap)
+              - flatPenalty(flatGap);
             if (score > bestScore) { bestScore = score; bestX = cand; }
-            if (dLoot >= LOOT_RULES.ruinMinGap && dPass >= LOOT_RULES.worldGap) break;
+            // 两阶段（2026-11-19）：只要抽到"脚底平整 + 不会和邻堆叠住"的候选就记下来；
+            // 最终**优先用它**，避免平坦度惩罚被间距项压掉（实测纯惩罚只能把跨坎从 33% 降到 26%）。
+            if (flatGap <= LOOT_RULES.ruinFlatGap && dLoot >= LOOT_RULES.ruinMinGap - RUIN_NEAR_SLACK) {
+              if (score > flatScore) { flatScore = score; flatX = cand; }
+              if (dLoot >= LOOT_RULES.ruinMinGap && dPass >= LOOT_RULES.worldGap) break;
+            }
           }
+          if (flatX !== null) bestX = flatX;
           placed.push(bestX);
           // 废墟类型（2026-09-25 用户要求）：稳固 / 引怪 / 易塌，按区域权重随机
           const type = pickWeighted(zone.typeWeights, this.rng);
@@ -925,16 +962,24 @@ export class World {
           //    另外也顺带让中段补点避让通道类物件（地下同样有地穴入口）。
           let bestX = 0;
           let bestScore = -Infinity;
+          let flatX = null;
+          let flatScore = -Infinity;
           for (let t = 0; t < 16; t++) {
             const cand = Math.round(SHELTER.cx + sign * (d0 + this.rng() * (d1 - d0)));
             let dLoot = Infinity;
             let dPass = Infinity;
             for (const v of placed) { const g = Math.abs(v - cand); if (g < dLoot) dLoot = g; }
             for (const v of passages) { const g = Math.abs(v - cand); if (g < dPass) dPass = g; }
-            const score = Math.min(dLoot - LOOT_RULES.ruinMinGap, dPass - LOOT_RULES.worldGap);
+            const flatGap = lootSpanGap(cand);
+            const score = Math.min(dLoot - LOOT_RULES.ruinMinGap, dPass - LOOT_RULES.worldGap)
+              - flatPenalty(flatGap);
             if (score > bestScore) { bestScore = score; bestX = cand; }
-            if (dLoot >= LOOT_RULES.ruinMinGap && dPass >= LOOT_RULES.worldGap) break;
+            if (flatGap <= LOOT_RULES.ruinFlatGap && dLoot >= LOOT_RULES.ruinMinGap - RUIN_NEAR_SLACK) {
+              if (score > flatScore) { flatScore = score; flatX = cand; }
+              if (dLoot >= LOOT_RULES.ruinMinGap && dPass >= LOOT_RULES.worldGap) break;
+            }
           }
+          if (flatX !== null) bestX = flatX;
           placed.push(bestX);
           const type = pickWeighted(zone.typeWeights, this.rng);
           out.push({
@@ -1013,6 +1058,7 @@ export class World {
       let bestX = null;
       let bestZone = null;
       let bestScore = -Infinity;
+      let flatX = null, flatZone = null, flatScore = -Infinity;
       for (let t = 0; t < 60; t++) {
         const z = zones[Math.floor(rng() * zones.length)];
         const range = z.xRanges[Math.floor(rng() * z.xRanges.length)];
@@ -1024,14 +1070,22 @@ export class World {
         for (const h of out) { const g = Math.abs(h.x - x); if (g < dHidden) dHidden = g; }
         for (const v of passages) { const g = Math.abs(v - x); if (g < dPass) dPass = g; }
         // 分数 = 三项"富余量"里最紧的那一项（口径同废墟撒点，见 LOOT_RULES.worldGap）
+        const flatGap = lootSpanGap(x);
         const score = Math.min(
           dLoot - HIDDEN.minGap,
           dHidden - HIDDEN.minGap,
           dPass - LOOT_RULES.worldGap
-        );
+        ) - flatPenalty(flatGap);
         if (score > bestScore) { bestScore = score; bestX = x; bestZone = z.id; }
-        if (dLoot >= HIDDEN.minGap && dHidden >= HIDDEN.minGap && dPass >= LOOT_RULES.worldGap) break;
+        // 两阶段（同废墟撒点）：优先"脚底平整 + 不会和别的东西叠住"的候选
+        if (flatGap <= LOOT_RULES.ruinFlatGap
+          && dLoot >= HIDDEN.minGap - RUIN_NEAR_SLACK
+          && dHidden >= HIDDEN.minGap - RUIN_NEAR_SLACK) {
+          if (score > flatScore) { flatScore = score; flatX = x; flatZone = z.id; }
+          if (dLoot >= HIDDEN.minGap && dHidden >= HIDDEN.minGap && dPass >= LOOT_RULES.worldGap) break;
+        }
       }
+      if (flatX !== null) { bestX = flatX; bestZone = flatZone; }
       if (bestX === null) continue;
       out.push({
         x: bestX,
