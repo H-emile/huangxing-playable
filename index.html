@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>荒星筑巢 · 灰盒原型</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #101713;
+    overflow: hidden;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  [hidden] { display: none !important; }
+  #game-home {
+    position: fixed; inset: 0; z-index: 3; overflow: auto; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    color: #f1ecda; background: #101713 url('assets/home_shelter.jpg') 62% bottom / cover no-repeat;
+  }
+  #game-home::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: #10171333; }
+  .home-panel { position: relative; width: min(440px, 100%); margin: auto; text-align: center; flex-shrink: 0; }
+  .home-panel h1 { margin: 10px 0; font-size: 52px; letter-spacing: 0; color: #f1ecda; text-shadow: 3px 3px #233c32, -1px -1px #e7bd69, 0 5px #111; }
+  .home-panel p { margin: 14px 0; color: #ddccb1; font-size: 14px; }
+  .home-panel small { color: #d6c798; font-size: 12px; letter-spacing: 0; }
+  .home-actions { display: grid; gap: 8px; max-width: 200px; margin: 24px auto 16px; }
+  #game-home button { min-height: 48px; padding: 8px 16px; border: 2px solid #a5ae8a; border-radius: 6px; background: #47554d; color: #f1ecda; font: bold 16px "Microsoft YaHei", system-ui, sans-serif; cursor: pointer; touch-action: manipulation; box-shadow: inset 0 2px #ffffff29, inset 0 -3px #0005, 0 3px #111; }
+  #game-home .primary-action { background: #356b58; color: #f1ecda; border-color: #b0cf96; }
+  @media (max-height: 450px) { .home-panel h1 { font-size: 32px; line-height: 1.1; margin: 6px 0; } .home-actions { margin: 10px auto 8px; gap: 6px; } .home-panel p { margin: 6px 0; font-size: 13px; line-height: 1.4; } }
+  canvas#game {
+    display: block;
+    aspect-ratio: 16 / 9;
+    width: min(100vw, 177.78vh);
+    height: auto;
+    background: #161b26;
+    touch-action: none;
+  }
+  #game-controls {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  }
+  #game-controls button { position: absolute; pointer-events: auto; }
+  #pause-button { display: grid; place-items: center; width: 48px; height: 48px; padding: 6px; }
+  #pause-button span { display: none; }
+  #pause-button img { width: 34px; height: 34px; image-rendering: pixelated; }
+  #game-controls { --control-size: 56px; --control-gap: 8px; --control-edge: 16px; }
+  #game-controls .touch-control {
+    bottom: max(var(--control-edge), env(safe-area-inset-bottom)); width: var(--control-size); height: var(--control-size);
+    padding: 12px; border-radius: 6px; background: #47554da6; touch-action: none; user-select: none;
+    -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  #move-left-button { left: max(var(--control-edge), env(safe-area-inset-left)); }
+  #move-right-button { left: calc(max(var(--control-edge), env(safe-area-inset-left)) + var(--control-size) + var(--control-gap)); }
+  #jump-button { right: max(var(--control-edge), env(safe-area-inset-right)); }
+  .touch-control svg { display: block; width: 100%; height: 100%; fill: none; stroke: #fff2da; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  #game-controls .touch-control.is-held, #game-controls .touch-control:active { background: #715839e6; border-color: #f6c77b; }
+  @media (max-width: 700px) { #game-controls { --control-size: 56px; } }
+  @media (max-width: 520px) { #game-controls { --control-size: 48px; --control-edge: 12px; } #game-controls #jump-button { width: 56px; height: 56px; } }
+  #game-controls button, #game-dialog button {
+    min-width: 44px; min-height: 44px; padding: 8px 12px;
+    border: 2px solid #879384; border-radius: 6px; background: #47554d;
+    color: #f1ecda; font: bold 14px "Microsoft YaHei", system-ui, sans-serif; cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: inset 0 2px #ffffff24, inset 0 -3px #0005, 0 2px #111;
+  }
+  button[data-symbol]::before { content: attr(data-symbol); display: inline-block; width: 16px; margin-right: 5px; color: #e7bd69; text-align: center; }
+  button:active:not(:disabled) { box-shadow: inset 0 2px #0005; filter: brightness(1.12); }
+  button:focus-visible { outline: 2px solid #f6c77b; outline-offset: 2px; }
+  #game-dialog button:disabled { opacity: .4; cursor: default; }
+  #game-cue {
+    position: fixed; width: max-content; max-width: min(190px, calc(100vw - 16px)); box-sizing: border-box;
+    padding: 6px 8px; border: 1px solid #879384; border-left: 3px solid #e7bd69; border-radius: 4px;
+    background: #1d211ff0; color: #f1ecda; font-size: 14px; line-height: 1.5;
+    white-space: pre-line; pointer-events: none;
+  }
+  #game-dialog {
+    width: min(620px, calc(100vw - 48px)); max-height: calc(100dvh - 64px); overflow-y: auto;
+    box-sizing: border-box; padding: 4px; border: 12px solid transparent; border-radius: 0;
+    border-image: url('assets/ui_console_frame.png') 12% fill / 12px stretch;
+    background: #1d211f; color: #f1ecda; font-size: 14px; line-height: 1.5; scrollbar-color: #b19d67 #1d211f;
+  }
+  #game-dialog::backdrop { background: #0009; }
+  #game-dialog.pause-dialog, #game-dialog.confirm-dialog { width: min(400px, calc(100vw - 48px)); }
+  #game-dialog.tutorial-dialog { width: min(720px, calc(100vw - 32px)); }
+  #game-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: -4px; z-index: 1; margin-bottom: 8px; min-height: 48px; background: #25332d; border-bottom: 2px solid #8c8057; }
+  #game-dialog h2 { display: flex; align-items: center; gap: 8px; font-size: 18px; margin: 0; min-width: 0; overflow-wrap: anywhere; color: #f1dfaa; }
+  .material-portrait { order: -1; width: 40px; height: 40px; flex: 0 0 40px; image-rendering: pixelated; }
+  #game-dialog h3 { font-size: 16px; }
+  #game-dialog > h3 { color: #d8c28c; border-left: 3px solid #8b9e72; padding-left: 8px; }
+  .tutorial-icon-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .tutorial-icon-card { display: flex; align-items: flex-start; gap: 10px; padding: 6px; border-bottom: 1px solid #4f5b4d; }
+  .tutorial-icon-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .tutorial-icon { flex: 0 0 48px; width: 48px; height: 48px; display: grid; place-items: center; font-size: 32px; color: #e7bd69; background: #37483f; outline: 1px solid #738571; border-radius: 6px; box-shadow: inset 0 2px #ffffff15, inset 0 -2px #0005; }
+  .tutorial-icon img, .tutorial-icon canvas, .tutorial-icon svg { width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; }
+  .tutorial-icon svg { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  #game-dialog .tutorial-icon-card h3 { margin: 0 0 4px; font-size: 16px; line-height: 22px; }
+  #game-dialog .tutorial-icon-card p { margin: 0; font-size: 14px; line-height: 20px; }
+  .tutorial-icon-card > div:last-child { min-width: 0; }
+  @media (max-width: 600px) { .tutorial-icon-grid { grid-template-columns: 1fr; } }
+  .tutorial-footer { position: sticky; bottom: -4px; display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; padding: 8px 0; border-top: 1px solid #71806a; background: #1d211f; }
+  .durability-bar { height: 8px; overflow: hidden; border: 1px solid #73604a; border-radius: 5px; background: #100d0b; }
+  .durability-bar span { display: block; height: 100%; background: #8fd694; box-shadow: inset 0 2px #ffffff33; }
+  .durability-bar.is-worn span { background: #f6c77b; }
+  .durability-bar.is-low span { background: #ef806f; }
+  .durability-bar.is-empty { background: #41382e; }
+  #game-dialog section { border-top: 1px solid #514231; padding-top: 8px; margin-top: 10px; }
+  #game-dialog button { margin: 3px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  #game-dialog .action-row button { margin: 0; }
+  .menu-actions { display: grid; gap: 8px; margin: 12px 0; }
+  #game-dialog .primary-action { background: #356b58; border-color: #a8ce98; color: #f1ecda; }
+  #game-dialog .danger-action { background: #744339; border-color: #ca9d7a; color: #fff1de; }
+  #game-dialog nav { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #4f5b4d; }
+  #game-dialog nav button:disabled { opacity: 1; background: #806633; color: #fff1c7; border-color: #d2bc80; }
+  #game-dialog .setting-toggle { display: flex; align-items: center; gap: 8px; }
+  .setting-toggle::after { content: ''; flex: 0 0 24px; width: 24px; height: 12px; border: 1px solid #737c7e; border-radius: 6px; background: #131719; box-shadow: inset 10px 0 #899184; }
+  .setting-toggle[aria-checked="true"]::after { background: #356b58; border-color: #a4d4b7; box-shadow: inset -10px 0 #b0cf96; }
+  #game-dialog .dialog-close { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; font-size: 0; }
+  .dialog-close::after { content: '\00d7'; font: 24px system-ui, sans-serif; }
+  .material-line { margin: 8px 0; }
+  .material-line p { flex: 1; min-width: 150px; margin: 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; margin: 8px 0; }
+  #game-dialog .stat-grid p { margin: 0; padding-left: 8px; border-left: 2px solid #8b9e72; line-height: 20px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+  @media (max-width: 420px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .item-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 6px; margin-top: 12px; }
+  .storage-grid, .material-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+  #game-dialog .material-item { position: relative; padding: 6px; margin: 0; border-color: #70816b; background: #26342d; }
+  #game-dialog .material-item:hover { border-color: #e7bd69; background: #3c4f40; }
+  #game-dialog .storage-item { touch-action: none; }
+  .material-item canvas { display: block; width: 48px; height: 48px; margin: auto; pointer-events: none; image-rendering: pixelated; }
+  .material-count { position: absolute; right: 3px; bottom: 3px; padding: 0 3px; background: #100d0be6; border-radius: 3px; pointer-events: none; }
+  #game-dialog.storage-dialog { width: min(860px, calc(100vw - 32px)); max-height: calc(100dvh - 24px); }
+  .storage-layout { display: grid; grid-template-columns: minmax(0, 1fr) 212px; gap: 20px; padding: 4px 0 12px; }
+  .storage-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 36px; margin-bottom: 8px; border-bottom: 1px solid #73816a; }
+  #game-dialog .storage-heading h3 { margin: 0; color: #f1dfaa; font-size: 16px; }
+  .storage-heading small { color: #b8c3b2; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .warehouse-shelves { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 10px; align-items: start; }
+  .warehouse-pane > .storage-heading { margin-right: 86px; }
+  #game-dialog .storage-categories { position: sticky; top: 64px; display: flex; flex-direction: column; gap: 8px; padding: 0; margin: -44px 0 0; border: 0; }
+  #game-dialog .storage-categories button { min-height: 48px; padding: 8px 4px; border-radius: 0 6px 6px 0; }
+  #game-dialog .storage-categories button:disabled { border-left: 4px solid #f1dfaa; }
+  .storage-dialog .storage-grid, .storage-dialog .deposit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; margin: 0; }
+  .storage-dialog .deposit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #game-dialog .storage-cell, .storage-empty { box-sizing: border-box; height: 84px; min-width: 0; border: 1px solid #65735f; border-radius: 4px; background: #26312b; box-shadow: inset 0 0 0 3px #111a14, inset 0 0 0 4px #46513f; }
+  #game-dialog .storage-cell { padding: 7px 4px 3px; }
+  #game-dialog .storage-cell:hover { border-color: #e7bd69; background: #3b4938; }
+  .storage-cell .material-name { display: block; margin-top: 5px; font-size: 12px; line-height: 16px; font-weight: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+  .storage-cell .material-count { top: 3px; bottom: auto; right: 3px; font-size: 12px; line-height: 16px; color: #f1dfaa; border: 1px solid #6b755b; }
+  .storage-empty { position: relative; background: #1a231e; opacity: .7; }
+  .storage-empty::after { content: ''; position: absolute; inset: 7px; border: 1px solid #364333; border-radius: 2px; }
+  .storage-footer { position: sticky; bottom: -4px; display: flex; justify-content: space-between; gap: 12px; padding: 8px 4px; border-top: 1px solid #8c8057; background: #25332d; color: #f1dfaa; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .storage-footer span:last-child { color: #b8c3b2; }
+  @media (max-width: 700px) { .storage-layout { grid-template-columns: 1fr; gap: 16px; } .storage-dialog .deposit-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-height: 360px) { #game-dialog .storage-categories { gap: 4px; } #game-dialog .storage-categories button { min-height: 44px; padding: 6px 4px; } }
+  @media (max-width: 440px) { .warehouse-shelves { grid-template-columns: 1fr; } .warehouse-pane > .storage-heading { margin-right: 0; } #game-dialog .storage-categories { grid-row: 1; flex-direction: row; position: static; margin: 0; } #game-dialog .storage-categories button { flex: 1; min-height: 44px; border-radius: 4px; } .storage-dialog .storage-grid, .storage-dialog .deposit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .craft-slots { display: flex; align-items: stretch; gap: 8px; }
+  .material-order { display: block; font-size: 12px; pointer-events: none; }
+  #game-dialog.management-dialog, #game-dialog.craft-dialog { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 24px); }
+  #game-dialog .management-tabs { justify-content: flex-start; gap: 4px; padding: 0 0 8px; margin: 0 0 8px; }
+  #game-dialog .management-tabs button { margin: 0; min-width: 88px; }
+  #game-dialog .face-tabs { gap: 8px; margin: 0 0 12px; padding: 0; border: 0; }
+  #game-dialog .face-tabs button { flex: 1; margin: 0; padding: 8px 4px; min-height: 44px; }
+  .wall-dialog .stat-grid { gap: 8px 20px; margin: 12px 0; }
+  .wall-dialog .stat-grid p { display: flex; justify-content: space-between; }
+  .wall-summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  @media (max-width: 600px) { .wall-summary { grid-template-columns: 1fr; gap: 4px; } }
+  .bench-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 84px; border-bottom: 1px solid #4f5b4d; }
+  .bench-row img { width: 80px; height: 48px; object-fit: contain; image-rendering: pixelated; }
+  #game-dialog .bench-row h3, #game-dialog .bench-row p { margin: 4px 0; }
+  .bench-row p { color: #b8c3b2; }
+  .craft-layout { display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 20px; }
+  .craft-assembly { border-right: 1px solid #65735f; padding-right: 16px; }
+  .craft-candidates { min-width: 0; }
+  .craft-dialog .craft-slots button { width: 72px; min-height: 72px; margin: 0; padding: 6px; }
+  .craft-dialog .craft-slots { gap: 8px; }
+  .craft-dialog .item-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); margin: 0; gap: 8px; }
+  .craft-dialog small { color: #b8c3b2; font-size: 14px; }
+  .craft-product { display: block; width: 48px; height: 48px; margin: 12px 0; image-rendering: pixelated; }
+  @media (max-width: 600px) { .craft-layout { grid-template-columns: 1fr; gap: 12px; } .craft-assembly { border-right: 0; border-bottom: 1px solid #65735f; padding: 0 0 12px; } .bench-row { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 8px; } .bench-row img { width: 56px; } }
+  @media (max-height: 500px) {
+    #game-controls button { padding: 6px 8px; }
+  }
+  .noscript {
+    color: #e8eef6;
+    font-size: 16px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <canvas id="game" width="1280" height="720"></canvas>
+  <noscript><div class="noscript">这个原型是纯 JS，需要开启 JavaScript。</div></noscript>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

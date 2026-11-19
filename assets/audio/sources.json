@@ -1,0 +1,197 @@
+[
+  {
+    "file": "click.wav",
+    "bytes": 9366,
+    "sha256": "56d7fef336c26e74e7694ad7b64f5e8a6f8dbefa95bde774e17c1b891d11d0ef",
+    "source": [
+      "kenney_interface-sounds.zip:Audio/click_001.ogg"
+    ],
+    "license": "CC0; see Kenney-License.txt",
+    "conversion": "Decoded Kenney OGG to 16-bit PCM WAV for consistent runtime format"
+  },
+  {
+    "file": "damage.wav",
+    "bytes": 92238,
+    "sha256": "7091670fc4c9d3bf9253b170f8ee632990c8d57bd5437700d48c9de6070977be",
+    "source": [
+      "A_single_player_dama_#2-1791266974969.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "dig.wav",
+    "bytes": 115278,
+    "sha256": "e4b74171a8b33c4f7ceebc0c61b9caf55f9ac4b059dcd48c309aa008a1faacac",
+    "source": [
+      "A_single_digging_str_#1-1791266414278.wav",
+      "A_single_digging_str_#1-1791266426079.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "install.wav",
+    "bytes": 92238,
+    "sha256": "85e361f8c3805088b265456646d587e2af44098e79f2e9110d3c6cf2a5bbd09f",
+    "source": [
+      "A_single_installatio_#3-1791266701770.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "jump.wav",
+    "bytes": 92238,
+    "sha256": "b6ca9e23a1ed4b584daca5743a7eb8acd7edba68731e707cdd2af69f0ec0a8ea",
+    "source": [
+      "D:/浏览器/A_short,_soft_jump_t_#3-1791271664780.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified",
+    "previous": {
+      "file": "jump.wav",
+      "bytes": 92238,
+      "sha256": "1beb2d491def43c561a2d7f01f6525af9d9585f25cca81c460d718b951a9cf76",
+      "source": [
+        "A_player_takeoff_sou_#4-1791266745873.wav"
+      ],
+      "license": "User-provided generated audio; service and plan rights not verified"
+    }
+  },
+  {
+    "file": "pickup.wav",
+    "bytes": 92238,
+    "sha256": "7217ff29a8adc06a7fdca7ca492f6f8ca3210846eb74806b8ab514dc3b9cdbf2",
+    "source": [
+      "A_material_pickup_so_#1-1791266602786.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "synth.wav",
+    "bytes": 153678,
+    "sha256": "e399026a10557714b8ebd21cfaf2ff3575c894ffda7e5fa2bc933e499681bdc3",
+    "source": [
+      "A_crafting_completio_#2-1791266902286.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "warning.wav",
+    "bytes": 153678,
+    "sha256": "ea27b2f3428075e8998c7034a131ce3f2b7c071d58e96630c7b86bbe3e20caf2",
+    "source": [
+      "A_danger_warning_fro_#2-1791267046288.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "meteor.wav",
+    "bytes": 92238,
+    "sha256": "61b2df993ff2eae0fc2d71162a4af4dd3e14417c3a827c7406b2ba563bfb66eb",
+    "source": [
+      "A_falling_meteor_whi_#4-1791272664602.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "lightning.wav",
+    "bytes": 169038,
+    "sha256": "1442b075b07d22ce4451abbe3176efe1df8490a8948214df2aa4a05401cc255a",
+    "source": [
+      "A_sharp_electrical_c_#3-1791272750158.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "beam.wav",
+    "bytes": 169038,
+    "sha256": "7a369dc6ff1ad4bf2c5ff0d160f7251212b396f9cd6752d522fd9af4943c548a",
+    "source": [
+      "A_single_alien_energ_#4-1791272787501.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "beasts.wav",
+    "bytes": 169038,
+    "sha256": "255f8dd78cb1944b8e06fa5dd4eda44f56911d58b547b5b71e5c7222672aa667",
+    "source": [
+      "An_alien_beast_slams_#3-1791272882861.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "sinkhole.wav",
+    "bytes": 169038,
+    "sha256": "2f32caedeff9bd4d0d1a28151bdfd6a8e78ed0cd0b6e6faefa1d2aedb414ff08",
+    "source": [
+      "Ground_suddenly_frac_#4-1791272836292.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "fog.wav",
+    "bytes": 768078,
+    "sha256": "9e8268570dda543c79dc3d2e08d3dd3e21848f42c88fbeba6be84e0ebb2df9ac",
+    "source": [
+      "Seamless_loop_of_poi_#3-1791273049889.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "tornado.wav",
+    "bytes": 768078,
+    "sha256": "69a5b1a27fda3ab3af7e0d243a558000761e215c8a7cd69a69774e1371777d80",
+    "source": [
+      "Seamless_loop_of_tur_#3-1791272965905.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified"
+  },
+  {
+    "file": "collapse.wav",
+    "bytes": 92238,
+    "sha256": "1beb2d491def43c561a2d7f01f6525af9d9585f25cca81c460d718b951a9cf76",
+    "source": [
+      "D:/浏览器/A_player_takeoff_sou_#4-1791275682328.wav"
+    ],
+    "license": "User-provided generated audio; service and plan rights not verified",
+    "previous": {
+      "file": "collapse.wav",
+      "bytes": 307244,
+      "sha256": "08623deafa97108eed15ba569459f69edac8a5fc9a1e6db549b1e8cb95d6af7f",
+      "source": [
+        "Ground_suddenly_frac_#4-1791272836292.wav"
+      ],
+      "license": "Derived from user-provided generated audio; service and plan rights not verified",
+      "conversion": "1.6-second layered collapse: pitch-down main fracture, two quieter delayed debris layers, low-pass smoothing and edge fades; reproduce with prototype/tools/make-collapse-audio.mjs"
+    }
+  },
+  {
+    "file": "explore-music.wav",
+    "bytes": 2854956,
+    "sha256": "6ea976395cfd942a1672ddd80254a7a26c2ec381f2edcfce0927a5a9d1ddde69",
+    "source": [
+      "10月6日.wav"
+    ],
+    "sourceBytes": 11419726,
+    "sourceSha256": "255776e76b09f932904d314293843dd349b4d75a05c11ccd354cc00627026984",
+    "license": "User-provided generated audio; service and plan rights not verified",
+    "conversion": "Chrome OfflineAudioContext resample to mono PCM16 24kHz; normalize mono peak to 0.6; original unchanged",
+    "duration": 59.477333333333334,
+    "originalMonoPeak": 0.018474841490387917,
+    "normalizationGain": 32.47659798933419
+  },
+  {
+    "file": "disaster-music.wav",
+    "bytes": 2147372,
+    "sha256": "2d63bafaaff69c6e095a173262826f0f8019e70687f2a581827373b6cb4e354d",
+    "source": [
+      "10月6日(1).wav"
+    ],
+    "sourceBytes": 8589390,
+    "sourceSha256": "2446e6ea683f3c94bb6070eebae3abc57890e7d719d33539ee98d2afafb0d00d",
+    "license": "User-provided generated audio; service and plan rights not verified",
+    "conversion": "Chrome OfflineAudioContext resample to mono PCM16 24kHz; normalize mono peak to 0.6; original unchanged",
+    "duration": 44.736,
+    "originalMonoPeak": 0.05685184895992279,
+    "normalizationGain": 10.553746465184707
+  }
+]
